@@ -98,3 +98,86 @@ def set_servo_pid(correction):
     set_servo_angle(servo_angle)
 
     return servo_angle
+
+
+# =====================================================
+# Motor - TB6612FNG
+# =====================================================
+
+pwma = PWM(Pin(PWMA_PIN))
+pwma.freq(1000)
+
+ain2 = Pin(AIN2_PIN, Pin.OUT)
+ain1 = Pin(AIN1_PIN, Pin.OUT)
+stby = Pin(STBY_PIN, Pin.OUT)
+
+
+def motor_forward(speed):
+    speed = max(0, min(100, speed))
+
+    stby.value(1)
+    ain1.value(1)
+    ain2.value(0)
+
+    duty = int((speed / 100) * 65535)
+    pwma.duty_u16(duty)
+
+
+def motor_stop():
+    pwma.duty_u16(0)
+    ain1.value(0)
+    ain2.value(0)
+    stby.value(0)
+
+
+# =====================================================
+# US-100 distance sensor
+# =====================================================
+
+trig = Pin(TRIG_PIN, Pin.OUT)
+echo = Pin(ECHO_PIN, Pin.IN)
+
+trig.value(0)
+time.sleep(0.05)
+
+
+def read_distance_once():
+    trig.value(0)
+    time.sleep_us(2)
+
+    trig.value(1)
+    time.sleep_us(10)
+    trig.value(0)
+
+    try:
+        duration = time_pulse_us(echo, 1, 30000)
+    except OSError:
+        return None
+
+    if duration <= 0:
+        return None
+
+    distance_cm = duration / 58.0
+
+    if distance_cm < 2 or distance_cm > 450:
+        return None
+
+    return distance_cm
+
+
+def read_distance_cm(samples=2):
+    values = []
+
+    for _ in range(samples):
+        d = read_distance_once()
+
+        if d is not None:
+            values.append(d)
+
+        time.sleep(0.005)
+
+    if len(values) == 0:
+        return None
+
+    values.sort()
+    return values[len(values) // 2]

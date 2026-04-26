@@ -181,3 +181,81 @@ def read_distance_cm(samples=2):
 
     values.sort()
     return values[len(values) // 2]
+
+
+# =====================================================
+# MPU9250
+# =====================================================
+
+i2c = I2C(0, sda=Pin(SDA_PIN), scl=Pin(SCL_PIN), freq=400000)
+
+devices = i2c.scan()
+print("I2C devices:", devices)
+
+MPU_ADDR = 0x68
+
+if MPU_ADDR not in devices:
+    print("0x68 not found, trying 0x69...")
+    MPU_ADDR = 0x69
+
+if MPU_ADDR not in devices:
+    print("MPU9250 not found. Check the wiring.")
+
+    while True:
+        motor_stop()
+        servo_center()
+        time.sleep(1)
+
+i2c.writeto_mem(MPU_ADDR, 0x6B, b"\x00")
+time.sleep(0.05)
+
+# Gyro +-250 dps
+i2c.writeto_mem(MPU_ADDR, 0x1B, b"\x00")
+
+# Accel +-2g
+i2c.writeto_mem(MPU_ADDR, 0x1C, b"\x00")
+
+
+def read_word(reg):
+    high = i2c.readfrom_mem(MPU_ADDR, reg, 1)[0]
+    low = i2c.readfrom_mem(MPU_ADDR, reg + 1, 1)[0]
+
+    value = (high << 8) | low
+
+    if value > 32767:
+        value -= 65536
+
+    return value
+
+
+def read_gyro():
+    gx_raw = read_word(0x43)
+    gy_raw = read_word(0x45)
+    gz_raw = read_word(0x47)
+
+    gx = gx_raw / 131.0
+    gy = gy_raw / 131.0
+    gz = gz_raw / 131.0
+
+    return gx, gy, gz
+
+
+def calibrate_gyro(samples=400):
+    print("Gyro calibration starting. Keep the robot still...")
+
+    gx_sum = 0
+    gy_sum = 0
+    gz_sum = 0
+
+    for _ in range(samples):
+        gx, gy, gz = read_gyro()
+
+        gx_sum += gx
+        gy_sum += gy
+        gz_sum += gz
+
+        time.sleep(0.004)
+
+    print("Calibration complete.")
+
+    return gx_sum / samples, gy_sum / samples, gz_sum / samples

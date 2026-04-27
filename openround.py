@@ -259,3 +259,168 @@ def calibrate_gyro(samples=400):
     print("Calibration complete.")
 
     return gx_sum / samples, gy_sum / samples, gz_sum / samples
+
+
+# =====================================================
+# PID
+# =====================================================
+
+integral = 0.0
+last_error = 0.0
+
+
+def pid_control(error, dt):
+    global integral, last_error
+
+    integral += error * dt
+    integral = max(-50, min(50, integral))
+
+    derivative = (error - last_error) / dt if dt > 0 else 0
+
+    output = (KP * error) + (KI * integral) + (KD * derivative)
+
+    last_error = error
+
+    return output
+
+
+def reset_pid():
+    global integral, last_error
+
+    integral = 0.0
+    last_error = 0.0
+
+
+def run_pid_drive(dt, yaw, target_yaw):
+    error = target_yaw - yaw
+    correction = pid_control(error, dt)
+    set_servo_pid(correction)
+
+
+# =====================================================
+# Main program
+# =====================================================
+
+yaw = 0.0
+target_yaw = 0.0
+turn_start_yaw = 0.0
+
+mode = "STRAIGHT"
+
+turn_count = 0
+final_stop_start_ms = 0
+ignore_corner_until_ms = 0
+
+loop_count = 0
+
+try:
+    motor_stop()
+    servo_center()
+    time.sleep(0.2)
+
+    gx_bias, gy_bias, gz_bias = calibrate_gyro()
+
+    last_time = time.ticks_us()
+
+    print("Dynamic corner-turn mode started.")
+    print("Slowdown before turning is disabled.")
+    print("After the 16th corner, the robot will drive straight briefly and stop.")
+    print("STOP_AFTER_TURNS:", STOP_AFTER_TURNS)
+    print("STOP_AFTER_LAST_TURN_MS:", STOP_AFTER_LAST_TURN_MS)
+
+    while True:
+        now_us = time.ticks_us()
+        now_ms = time.ticks_ms()
+
+        dt = time.ticks_diff(now_us, last_time) / 1000000.0
+        last_time = now_us
+
+        if dt <= 0:
+            dt = 0.001
+
+        gx, gy, gz = read_gyro()
+        gz_corrected = gz - gz_bias
+
+        if abs(gz_corrected) < 0.4:
+            gz_corrected = 0
+
+        yaw += gz_corrected * dt
+
+        distance = read_distance_cm(samples=2)
+
+        # =================================================
+        # Mode 1: Drive straight
+        # =================================================
+        if mode == "STRAIGHT":
+            run_pid_drive(dt, yaw, target_yaw)
+
+            motor_forward(MOTOR_SPEED_STRAIGHT)
+
+            corner_allowed = time.ticks_diff(now_ms, ignore_corner_until_ms) >= 0
+
+            if (
+                corner_allowed
+                and distance is not None
+                and distance < TURN_DISTANCE_CM
+            ):
+                print("Corner detected. Switching to turn mode.")
+                print("Starting yaw:", round(yaw, 2))
+                print("Current turn count:", turn_count)
+
+                reset_pid()
+                turn_start_yaw = yaw
+
+                if CORNER_DIRECTION == "RIGHT":
+                    servo_full_right()
+                    print("Right turn started.")
+                else:
+                    servo_full_left()
+                    print("Left turn started.")
+
+                mode = "TURN"
+                motor_forward(MOTOR_SPEED_TURN)
+
+        # =================================================
+        # Mode 2: Fast 90-degree turn
+        # =================================================
+        elif mode == "TURN":
+            motor_forward(MOTOR_SPEED_TURN)
+
+            if CORNER_DIRECTION == "RIGHT":
+                servo_full_right()
+            else:
+                servo_full_left()
+
+            turned_angle = abs(yaw - turn_start_yaw)
+
+            if turned_angle >= (TURN_ANGLE - TURN_TOLERANCE):
+                turn_count += 1
+
+                print("90-degree turn complete.")
+                print("Turned angle:", round(turned_angle, 2))
+                print("Turn count:", turn_count)
+
+                servo_center()
+                time.sleep(0.05)
+
+                yaw = 0.0
+                target_yaw = 0.0
+                turn_start_yaw = 0.0
+
+                reset_pid()
+
+                ignore_corner_until_ms = time.ticks_add(
+                    time.ticks_ms(),
+                    TURN_IGNORE_AFTER_TURN_MS
+                )
+
+                mode = "STRAIGHT"
+                motor_forward(MOTOR_SPEED_STRAIGHT)
+
+except KeyboardInterrupt:
+    print("Program stopped.")
+
+finally:
+    motor_stop()
+    servo_center()
+    print("Motor stopped, servo centered.")

@@ -414,8 +414,54 @@ try:
                     TURN_IGNORE_AFTER_TURN_MS
                 )
 
-                mode = "STRAIGHT"
-                motor_forward(MOTOR_SPEED_STRAIGHT)
+                if turn_count >= STOP_AFTER_TURNS:
+                    print("16th corner complete.")
+                    print("Driving straight briefly before stopping.")
+
+                    final_stop_start_ms = time.ticks_ms()
+                    mode = "FINAL_STRAIGHT_BEFORE_STOP"
+
+                    motor_forward(MOTOR_SPEED_STRAIGHT)
+
+                else:
+                    mode = "STRAIGHT"
+                    motor_forward(MOTOR_SPEED_STRAIGHT)
+
+        # =================================================
+        # Mode 3: Short straight drive after the 16th corner
+        # =================================================
+        elif mode == "FINAL_STRAIGHT_BEFORE_STOP":
+            run_pid_drive(dt, yaw, target_yaw)
+            motor_forward(MOTOR_SPEED_STRAIGHT)
+
+            if time.ticks_diff(now_ms, final_stop_start_ms) >= STOP_AFTER_LAST_TURN_MS:
+                print("Final straight drive complete.")
+                print("Robot stopping.")
+
+                motor_stop()
+                servo_center()
+
+                mode = "STOPPED"
+
+        # =================================================
+        # Mode 4: Stopped
+        # =================================================
+        elif mode == "STOPPED":
+            motor_stop()
+            servo_center()
+
+        loop_count += 1
+
+        if loop_count % 8 == 0:
+            print(
+                "Mode:", mode,
+                "| Dist:", None if distance is None else round(distance, 1),
+                "| Yaw:", round(yaw, 2),
+                "| Target:", round(target_yaw, 2),
+                "| TurnCount:", turn_count
+            )
+
+        time.sleep(0.01)
 
 except KeyboardInterrupt:
     print("Program stopped.")

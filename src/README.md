@@ -217,15 +217,29 @@ cp camera_uart_blink.py /path/to/micropython-board/
 
 Rename the active script to `main.py` if automatic startup is needed.
 
-## Photo Documentation To Add
+## Photo Documentation
 
-Photos can be added later to improve the documentation:
+The source documentation includes development photos to show the physical robot setup, wiring work, and track testing process.
+
+### Open-Round Track Test
+
+![Open-round track testing with the robot inside a cardboard practice field](images/open-round-track-test.jpeg)
+
+This photo shows the robot being tested in a handmade open-round practice field. The cardboard walls were used as a quick simulation of the WRO Future Engineers track boundaries while tuning the ultrasonic corner detection, gyro-based turn counting, and steering behavior.
+
+### Bench Build and Wiring
+
+![Robot bench wiring and development setup](images/robot-bench-wiring.jpeg)
+
+This photo shows the robot during bench development with the controller, wiring, laptop, and test environment visible. It documents the practical debugging setup used while working on the camera, UART, servo, and drive-control code.
+
+Recommended additional documentation photos:
 
 - Full robot wiring layout
 - ESP32-CAM mount and field of view
 - Servo linkage and center position
 - MPU9250 and US-100 placement
-- Open-round track testing setup
+- Close-up of the drive motor and steering assembly
 
 ## Engineering Notes
 

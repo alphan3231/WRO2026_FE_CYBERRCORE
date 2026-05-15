@@ -112,7 +112,7 @@ GYRO_STEER_REVERSE = False
 CORNER_DIRECTION = "LEFT"   # "RIGHT" veya "LEFT"
 
 # Tur sayma
-REQUIRED_LAPS = 4
+REQUIRED_LAPS = 3
 CORNERS_PER_LAP = 4
 
 # Hızlar
@@ -703,14 +703,14 @@ try:
         turn_allowed = time.ticks_diff(now_ms, turn_ignore_until) >= 0
 
         # =================================================
-        # 4 TUR BİTİRME
+        # 3 TUR BİTİRME
         # =================================================
 
         if lap_count >= REQUIRED_LAPS:
             motor_stop()
             servo_center()
-            print("BITTI! 4 TUR TAMAMLANDI.")
-            log_event("BITTI | 4 TUR TAMAMLANDI")
+            print("BITTI! 3 TUR TAMAMLANDI.")
+            log_event("BITTI | 3 TUR TAMAMLANDI")
             break
 
         # =================================================

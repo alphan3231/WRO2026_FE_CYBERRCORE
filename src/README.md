@@ -1,13 +1,13 @@
 # WRO 2026 Future Engineers Software Documentation
 
-This folder contains the robot source code for Team CYBERRCORE's WRO 2026 Future Engineers vehicle. The software is split between an ESP32-CAM vision module written in Arduino C++ and MicroPython control utilities for drive, sensor, UART, and servo tuning. This documentation was last updated on April 30, 2026 at 18:52 +03.
+This folder contains the robot source code for Team CYBERRCORE's WRO 2026 Future Engineers vehicle. The software is split between an ESP32-CAM vision module written in Arduino C++ and MicroPython control utilities for open round, obstacle round, sensor, UART, and servo tuning. This documentation was last updated on June 4, 2026.
 
 ## Software Architecture Overview
 
 The current software is organized around two main roles:
 
 - **ESP32-CAM vision module**: Captures low-resolution RGB565 frames, detects red and green objects, and sends compact serial messages.
-- **MicroPython vehicle controller utilities**: Drive the steering servo, motor driver, ultrasonic distance sensor, and MPU9250 gyro for open-round navigation and calibration.
+- **MicroPython vehicle controller utilities**: Drive the steering servo, motor driver, ultrasonic distance sensor, and MPU9250 gyro for open-round navigation, obstacle-round navigation, and calibration.
 - **UART communication**: Vision output uses newline-terminated messages at 115200 baud, allowing another board to react to camera detections.
 
 The system keeps the runtime logic simple and deterministic. The camera module only reports color and horizontal position, while the vehicle control code handles movement, turning, and tuning.
@@ -28,6 +28,14 @@ MicroPython openround.py
         +-- Steering servo
         +-- US-100 ultrasonic distance sensor
         +-- MPU9250 gyro over I2C
+
+MicroPython obstacleround.py
+        |
+        +-- ESP32-CAM UART color obstacle data
+        +-- Gyro heading correction
+        +-- US-100 corner detection
+        +-- Lap and corner counting
+        +-- Run log output
 ```
 
 ## Programming Environment and Tools
@@ -56,6 +64,7 @@ MicroPython openround.py
 | [`camera.cpp`](camera.cpp) | Arduino C++ | ESP32-CAM color detection for red and green objects |
 | [`camera_uart_blink.py`](camera_uart_blink.py) | MicroPython | UART receiver test that blinks LED on camera color messages |
 | [`openround.py`](openround.py) | MicroPython | Open-round drive logic with gyro-assisted 90-degree corner turns |
+| [`obstacleround.py`](obstacleround.py) | MicroPython | Obstacle-round logic combining camera color tracking, gyro recovery, corner turns, and lap counting |
 | [`servo_tune.py`](servo_tune.py) | MicroPython | Servo center, direction, and PID steering tuning utility |
 
 ## Vision System
@@ -114,6 +123,69 @@ STRAIGHT or FINAL_STRAIGHT_BEFORE_STOP
 STOPPED
 ```
 
+## Obstacle Round Navigation
+
+`obstacleround.py` extends the base driving system for the WRO obstacle round. It combines camera color detections, gyro heading control, ultrasonic corner detection, and a multi-state obstacle passing routine.
+
+### Obstacle Strategy
+
+The ESP32-CAM reports colored obstacle data over UART. The obstacle-round script uses this information to choose a passing line:
+
+- **Red obstacle**: keep the red object on the left side of the camera view so the robot passes on its right.
+- **Green obstacle**: keep the green object on the right side of the camera view so the robot passes on its left.
+- **No obstacle visible**: continue gyro-assisted forward driving and use ultrasonic distance to detect corners.
+
+The target camera positions are:
+
+| Obstacle | Target camera x | Intended pass side |
+| --- | --- | --- |
+| Red | `RED_TARGET_X = 48` | Pass on the right |
+| Green | `GREEN_TARGET_X = 112` | Pass on the left |
+
+### Obstacle State Machine
+
+```text
+FOLLOW
+   |
+   | RED or GREEN detected
+   v
+FOLLOW_COLOR
+   |
+   | color lost or timeout
+   v
+LOST_COLOR
+   |
+   | obstacle should be passed
+   v
+PASS_COLOR
+   |
+   | pass timer complete
+   v
+RECOVER_HEADING
+   |
+   | heading recovered or timeout
+   v
+FOLLOW
+
+FOLLOW
+   |
+   | distance < TURN_DISTANCE_CM
+   v
+TURN
+   |
+   | 90-degree turn complete
+   v
+FOLLOW
+```
+
+### Lap and Corner Counting
+
+The obstacle-round script tracks `corner_count` and `lap_count`. After every four corners, one lap is counted. The robot stops when `REQUIRED_LAPS = 4` is reached.
+
+### Logging
+
+`obstacleround.py` can write runtime data to `run_log.txt`. The log records mode changes, calibration events, snapshots, corner turns, lap completions, and unexpected exceptions. This helps diagnose behavior after a physical run without relying only on live console output.
+
 ## Control System
 
 The steering controller uses a basic PID loop:
@@ -139,6 +211,22 @@ Current tuning values:
 | `KD` | 0.25 |
 | `MOTOR_SPEED_STRAIGHT` | 30 |
 | `MOTOR_SPEED_TURN` | 50 |
+
+Obstacle-round tuning values:
+
+| Parameter | Value |
+| --- | --- |
+| `SERVO_MIN` | 50 |
+| `SERVO_CENTER` | 65 |
+| `SERVO_MAX` | 80 |
+| `MOTOR_SPEED_FOLLOW` | 65 |
+| `MOTOR_SPEED_COLOR` | 48 |
+| `MOTOR_SPEED_PASS` | 42 |
+| `MOTOR_SPEED_TURN` | 57 |
+| `TURN_DISTANCE_CM` | 45 |
+| `STOP_DISTANCE_CM` | 6 |
+| `KP_HEADING` | 2.4 |
+| `KD_HEADING` | 0.35 |
 
 ## UART Test Utility
 
@@ -194,6 +282,7 @@ Recommended validation order:
 4. Run `servo_tune.py` to confirm steering limits and PID direction.
 5. Run `openround.py` on blocks or a safe test area to verify motor direction.
 6. Test the full open-round behavior on the WRO track at low speed first.
+7. Run `obstacleround.py` after camera UART output, steering direction, gyro calibration, and ultrasonic distance readings are confirmed.
 
 ## Deployment Instructions
 
@@ -211,6 +300,7 @@ Copy the required `.py` file to the MicroPython board filesystem:
 
 ```bash
 cp openround.py /path/to/micropython-board/
+cp obstacleround.py /path/to/micropython-board/
 cp servo_tune.py /path/to/micropython-board/
 cp camera_uart_blink.py /path/to/micropython-board/
 ```
@@ -246,11 +336,13 @@ Recommended additional documentation photos:
 - The camera intentionally uses a small frame size and pixel skipping for faster detection.
 - The gyro is calibrated at startup, so the robot must stay still during calibration.
 - `TURN_IGNORE_AFTER_TURN_MS` prevents the same wall from being counted as a new corner immediately after turning.
+- The obstacle-round script ignores corner triggers briefly after color detection so obstacle passing does not accidentally start a corner turn.
+- `run_log.txt` is generated on the MicroPython board during obstacle-round runs when logging is enabled.
 - The code favors simple thresholds and state machines so behavior can be tuned quickly during physical testing.
 
 ## Future Improvements
 
-- Add a shared UART protocol between the camera and main driving script.
+- Align the ESP32-CAM output format across open-round tests and obstacle-round mode.
 - Save tuning constants in a separate configuration file.
 - Add separate test scripts for motor, ultrasonic sensor, gyro, and UART.
 - Add lighting-condition calibration notes for red and green thresholds.

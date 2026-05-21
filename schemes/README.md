@@ -1,117 +1,60 @@
 # Electronics Schemes
 
-This directory documents the electronics used in the WRO 2026 Future Engineers robot. It includes the main wiring scheme and reference photos for the controller, sensors, motor driver, power system, drive motor, and steering servo.
+This directory documents the electronics used in the WRO 2026 Future Engineers robot. It includes the complete wiring scheme and a bill of materials for the main controller, sensors, motor driver, power system, drive motor, and steering servo.
 
 ## Main Wiring Scheme
 
 ![Complete electronics wiring scheme](electronicsheme.jpeg)
 
-The main scheme shows the robot electronics connected around a Raspberry Pi Pico 2 W H controller. The robot uses a separate ESP32-CAM for camera vision, a TB6612FNG motor driver for the DC drive motor, buck converters for voltage regulation, and I2C/UART-connected sensors for navigation.
+The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico controls the motor driver, steering servo, US-100 ultrasonic sensor, MPU9250 IMU, and TCS34725 color sensor. The ESP32-CAM works as a separate vision module and sends camera detections to the Pico over UART.
 
-## Component List
+## Complete Bill of Materials (BOM)
 
-| Component | Image | Purpose |
+| Component | Image | Quantity | Type | Description |
+| --- | --- | ---: | --- | --- |
+| Raspberry Pi Pico 2 W H | <img src="rpipico2wh.jpg" alt="Raspberry Pi Pico 2 W H" width="140"> | 1 | Main microcontroller | Runs the MicroPython control code for steering, motor control, sensor reading, open round, and obstacle round behavior. |
+| ESP32-CAM | <img src="esp32cam.jpg" alt="ESP32-CAM" width="140"> | 1 | Camera module | Detects red and green obstacles and sends compact UART messages to the Pico. |
+| TB6612FNG | <img src="tb6612fng.jpg" alt="TB6612FNG motor driver" width="140"> | 1 | Motor driver | Drives the 6 V DC motor using PWM and direction signals from the Pico. |
+| 6 V micro DC motor | <img src="6vmicrodc.jpg" alt="6 V micro DC motor" width="140"> | 1 | Drive motor | Provides propulsion for the vehicle through the drivetrain. |
+| HD-1440A servo | <img src="hd1440aservo.jpg" alt="HD-1440A servo" width="140"> | 1 | Steering servo | Controls the steering mechanism and receives PWM commands from the Pico. |
+| US-100 ultrasonic sensor | <img src="us100.jpg" alt="US-100 ultrasonic sensor" width="140"> | 1 | Distance sensor | Measures front distance for wall detection, corner detection, and safety checks. |
+| MPU9250 | <img src="mpu9250.jpg" alt="MPU9250 IMU" width="140"> | 1 | IMU / gyro sensor | Provides yaw-rate data for heading correction, 90-degree turns, and recovery after obstacle passing. |
+| TCS34725 | <img src="tcs34725.jpg" alt="TCS34725 color sensor" width="140"> | 1 | Color sensor | Reference/backup color sensing module for future color-based improvements. |
+| LM2596 / RT3505 buck converter | <img src="rt3505.jpg" alt="Buck converter module" width="140"> | 2 | Voltage regulator | Steps battery voltage down for electronics and actuator rails. Output voltage must be checked before connecting modules. |
+| 6S 450 mAh LiPo battery | <img src="6s450mah40lipo.jpg" alt="6S 450 mAh LiPo battery" width="140"> | 1 | Battery | Main robot power source. Feeds the regulator stage through the main switch. |
+| On/off switch | <img src="switchonoff.jpg" alt="On/off switch" width="140"> | 1 | Power switch | Enables safe manual power control for the robot. |
+
+## Signal and Power Summary
+
+| Connection group | Modules | Notes |
 | --- | --- | --- |
-| Raspberry Pi Pico 2 W H | [`rpipico2wh.jpg`](rpipico2wh.jpg) | Main MicroPython controller for motor, servo, sensors, and navigation logic |
-| ESP32-CAM | [`esp32cam.jpg`](esp32cam.jpg) | Vision module for red/green obstacle detection and UART output |
-| TB6612FNG motor driver | [`tb6612fng.jpg`](tb6612fng.jpg) | Drives the 6 V DC motor from Pico PWM/direction signals |
-| 6 V micro DC motor | [`6vmicrodc.jpg`](6vmicrodc.jpg) | Main drive motor for the rear/front drive system |
-| HD-1440A servo | [`hd1440aservo.jpg`](hd1440aservo.jpg) | Steering actuator |
-| US-100 ultrasonic sensor | [`us100.jpg`](us100.jpg) | Front distance sensor for wall/corner detection |
-| MPU9250 IMU | [`mpu9250.jpg`](mpu9250.jpg) | Gyro yaw measurement for turns and heading correction |
-| TCS34725 color sensor | [`tcs34725.jpg`](tcs34725.jpg) | Color sensing reference/backup module |
-| LM2596 / RT3505 buck converter | [`rt3505.jpg`](rt3505.jpg) | Voltage regulation for logic and actuator rails |
-| 6S 450 mAh LiPo battery | [`6s450mah40lipo.jpg`](6s450mah40lipo.jpg) | Main robot power source |
-| On/off switch | [`switchonoff.jpg`](switchonoff.jpg) | Main power switching |
+| Motor control | Pico 2 W H -> TB6612FNG -> DC motor | PWM controls speed, direction pins control motor direction. |
+| Steering | Pico 2 W H -> HD-1440A servo | Servo limits are tuned in `src/servo_tune.py`. |
+| Distance sensing | Pico 2 W H -> US-100 | Used by `src/openround.py` and `src/obstacleround.py` for wall/corner detection. |
+| Gyro heading | Pico 2 W H -> MPU9250 | I2C gyro data is used for yaw estimation and turn completion. |
+| Camera UART | ESP32-CAM -> Pico 2 W H | The camera sends `RED`, `GREEN`, or `NONE` messages for obstacle logic. |
+| Color sensing | Pico 2 W H -> TCS34725 | Reserved as an extra color sensing module. |
+| Power regulation | LiPo -> switch -> buck converters -> modules | All grounds must be common. Regulator outputs must be measured before testing. |
 
-## Power Distribution
+## Safety Checklist
 
-The battery feeds the power regulation stage through the main switch. Buck converters step the battery voltage down for the electronics and actuator rails. All modules share a common ground, which is required for stable PWM, I2C, UART, trigger/echo, and camera communication.
+- Check every buck converter output with a multimeter before connecting electronics.
+- Keep the Pico, ESP32-CAM, motor driver, sensors, and power system on a common ground.
+- Confirm UART TX/RX wiring direction between the ESP32-CAM and Pico.
+- Confirm the US-100 echo signal is safe for Pico input voltage.
+- Test the servo direction before running autonomous code.
+- Test motor direction with wheels lifted from the ground.
+- Secure the LiPo battery physically before driving.
+- Use the switch to cut power quickly during bench tests.
 
-Important power notes:
+## Software Mapping
 
-- Keep motor/servo power separate from low-voltage logic where possible.
-- Connect all grounds together at a common reference point.
-- Confirm buck converter output voltage before connecting the Pico, ESP32-CAM, sensors, or servo.
-- Use short, secure power wiring for motor and servo loads.
-
-## Signal Connections
-
-The software in `src/` expects the following main signal groups:
-
-| Signal group | Connected modules |
+| Software file | Electronics used |
 | --- | --- |
-| PWM steering | Pico 2 W H to HD-1440A servo |
-| PWM/direction motor control | Pico 2 W H to TB6612FNG |
-| I2C bus | Pico 2 W H to MPU9250 and TCS34725 |
-| Ultrasonic distance | Pico 2 W H to US-100 trigger/echo |
-| Camera UART | ESP32-CAM serial output to Pico UART input |
-
-## Voltage Divider Notes
-
-The scheme includes resistor dividers on signal paths that need level protection. In the drawing, 1 kOhm and 2 kOhm resistors are used near the camera and ultrasonic signal wiring. These are intended to reduce higher-voltage signals before they reach 3.3 V logic pins.
-
-Before powering the robot:
-
-1. Check every buck converter output with a multimeter.
-2. Confirm that the ESP32-CAM and Pico share ground.
-3. Confirm that UART TX/RX wiring is crossed correctly.
-4. Confirm that US-100 echo voltage is safe for the Pico input.
-5. Confirm motor polarity before running autonomous code.
-
-## Development Photos
-
-### Raspberry Pi Pico 2 W H
-
-![Raspberry Pi Pico 2 W H](rpipico2wh.jpg)
-
-### ESP32-CAM
-
-![ESP32-CAM](esp32cam.jpg)
-
-### Motor Driver
-
-![TB6612FNG motor driver](tb6612fng.jpg)
-
-### Sensors
-
-![US-100 ultrasonic sensor](us100.jpg)
-
-![MPU9250 IMU](mpu9250.jpg)
-
-![TCS34725 color sensor](tcs34725.jpg)
-
-### Actuators and Power
-
-![6 V micro DC motor](6vmicrodc.jpg)
-
-![HD-1440A steering servo](hd1440aservo.jpg)
-
-![6S 450 mAh LiPo battery](6s450mah40lipo.jpg)
-
-![On/off switch](switchonoff.jpg)
-
-![Buck converter module](rt3505.jpg)
-
-## Integration With Software
-
-The electronics in this folder correspond to the source files in `src/`:
-
-- `openround.py` uses the servo, motor driver, US-100, and MPU9250.
-- `obstacleround.py` adds ESP32-CAM UART color data and obstacle-passing behavior.
-- `servo_tune.py` is used to tune steering limits and gyro-assisted PID direction.
-- `camera.cpp` runs on the ESP32-CAM and outputs color detections over serial.
-
-## Checklist Before Testing
-
-- Battery charged and physically secure.
-- Buck converter outputs checked.
-- Pico, ESP32-CAM, sensors, motor driver, and servo grounds connected together.
-- Servo moves in the expected direction.
-- Motor spins in the expected direction.
-- US-100 distance readings are stable.
-- MPU9250 is detected over I2C.
-- ESP32-CAM sends valid UART messages.
-- Switch can safely cut power.
+| `src/camera.cpp` | ESP32-CAM |
+| `src/camera_uart_blink.py` | ESP32-CAM UART output and Pico onboard LED |
+| `src/openround.py` | Pico, servo, TB6612FNG, DC motor, US-100, MPU9250 |
+| `src/obstacleround.py` | Pico, ESP32-CAM, servo, TB6612FNG, DC motor, US-100, MPU9250 |
+| `src/servo_tune.py` | Pico, steering servo, MPU9250 |
 
 This folder should be updated whenever the electronics layout, wiring, power system, or sensor placement changes.

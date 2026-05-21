@@ -186,6 +186,18 @@ The obstacle-round script tracks `corner_count` and `lap_count`. After every fou
 
 `obstacleround.py` can write runtime data to `run_log.txt`. The log records mode changes, calibration events, snapshots, corner turns, lap completions, and unexpected exceptions. This helps diagnose behavior after a physical run without relying only on live console output.
 
+### Edge Cases and Mitigations
+
+| Risk | Mitigation in code |
+| --- | --- |
+| False ultrasonic readings at very short range | Distances below `MIN_VALID_DISTANCE_CM` are rejected and close-stop logic requires repeated close readings. |
+| Same wall counted twice after a turn | `TURN_IGNORE_AFTER_TURN_MS` blocks immediate corner re-triggering. |
+| Corner triggered while avoiding an obstacle | `TURN_IGNORE_AFTER_COLOR_MS` delays corner detection after color tracking starts. |
+| Camera briefly loses the obstacle | `LOST_COLOR` keeps a short bias based on the last known color instead of instantly returning to normal driving. |
+| Two obstacles appear close together | `chain_active` extends pass duration and increases pass bias for chained red/green patterns. |
+| Gyro drift after major maneuvers | Yaw and PID state are reset after turns and recovery events. |
+| UART buffer noise or partial messages | The buffer is bounded and lines are parsed only after newline termination. |
+
 ## Control System
 
 The steering controller uses a basic PID loop:
@@ -227,6 +239,29 @@ Obstacle-round tuning values:
 | `STOP_DISTANCE_CM` | 6 |
 | `KP_HEADING` | 2.4 |
 | `KD_HEADING` | 0.35 |
+
+## Engineering Decisions and Trade-offs
+
+| Decision | Why it was chosen | Trade-off |
+| --- | --- | --- |
+| Separate ESP32-CAM vision module | Keeps camera processing off the main Pico controller and gives a simple UART interface. | Requires a second board and stable serial wiring. |
+| RGB thresholding instead of ML | Runs fast on ESP32-CAM and is easy to tune on the track. | Sensitive to lighting, so threshold calibration is needed. |
+| Gyro-based turn completion | More repeatable than timing-only turns. | Requires startup calibration and drift handling. |
+| US-100 for corner detection | Simple, cheap, and direct front-wall measurement. | Needs filtering for close-range noise. |
+| State machine control | Easy to debug and explain during judging. | More states require careful transition timing. |
+| Logging to `run_log.txt` | Allows post-run diagnosis without watching serial output live. | Writes are limited by MicroPython filesystem reliability and should not be too frequent. |
+
+## Test Plan and Acceptance Criteria
+
+| Test | Procedure | Pass criteria |
+| --- | --- | --- |
+| Camera color detection | Show red, green, and no object to ESP32-CAM. | Serial output changes between `RED`, `GREEN`, and `NONE` within one frame loop. |
+| UART receiver | Run `camera_uart_blink.py` with camera connected. | Red gives one blink, green gives two blinks, repeated same color does not spam blinks. |
+| Servo direction | Run `servo_tune.py` while the robot is lifted. | Center, left, right, and PID correction directions match the steering geometry. |
+| Gyro calibration | Keep robot still during startup. | Yaw remains near zero while stationary and changes consistently during rotation. |
+| Ultrasonic distance | Place a wall at known distances. | Readings are stable and impossible close readings are filtered. |
+| Open round | Run `openround.py` on a practice track. | Robot completes repeated 90-degree turns without double-counting the same wall. |
+| Obstacle round | Run `obstacleround.py` with red/green obstacles. | Red is passed on the correct side, green is passed on the correct side, and heading recovers after each pass. |
 
 ## UART Test Utility
 

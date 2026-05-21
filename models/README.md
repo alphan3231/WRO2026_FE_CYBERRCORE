@@ -95,6 +95,17 @@ The front steering system uses a 4-component linkage to achieve Ackermann-compli
 - **Driven Gear** (`0.8M-31T`): Large central hub bore for rear shaft engagement, transfers torque into the differential
 - **Rear Shaft** (`ArkaŞaft`): Through-axle with integrated differential gear stack and bearing seats at both ends; provides the structural spine of the rear drivetrain
 
+**Torque and Speed Justification:**
+
+| Choice | Reason | Trade-off |
+| --- | --- | --- |
+| 1:1 31T-to-31T gear pair | Preserves motor speed for the long straight sections of the WRO track. | Lower torque multiplication than a reduction gear, so the vehicle relies on low mass and smooth acceleration. |
+| Differential rear axle | Reduces tire scrub during turns and improves repeatability in corners. | Adds more printed parts and assembly alignment checks. |
+| 0.8 module gears | Strong enough for the vehicle scale while keeping gear diameter compact. | Gear mesh must be printed cleanly and aligned carefully. |
+| Bearing-supported rotating joints | Reduces friction and improves consistency over repeated laps. | Requires accurate bearing seat tolerances and controlled press-fit. |
+
+The drivetrain was selected for controllability rather than maximum acceleration. In WRO Future Engineers, predictable speed and repeatable corner entry are more valuable than a high top speed that causes missed turns or unstable sensor readings.
+
 ---
 
 ### 🏎️ Wheel & Tire System
@@ -253,6 +264,37 @@ All components were modeled in **SolidWorks** with full parametric feature trees
 3. **Assembly Validation** — Full assembly checked for interference, range-of-motion clearances, and cable routing paths
 4. **Prototype & Test** — First-print fit check, steering geometry validation, and drivetrain engagement verification
 5. **Refinement** — Dimensional corrections, wall thickness optimization, and fastener clearance adjustments applied before production prints
+
+## ✅ Mechanical Validation Tests
+
+| Test | Procedure | Acceptance criteria |
+| --- | --- | --- |
+| Steering range | Move servo from minimum to maximum command while wheels are lifted. | Linkage reaches both steering directions without binding or wheel/chassis contact. |
+| Ackermann behavior | Observe inner/outer wheel angles during left and right steering. | Inner wheel turns more sharply than the outer wheel in both directions. |
+| Gear mesh | Spin the drivetrain by hand and then under low PWM. | No skipping, tight spots, or visible gear wobble. |
+| Differential action | Hold one rear wheel and rotate the opposite wheel gently. | Differential allows relative wheel motion without excessive friction. |
+| Bearing fit | Press bearings into front wheel mounts and rotate wheels. | Bearing stays seated and wheel rotates freely. |
+| Sensor mount rigidity | Shake chassis lightly and inspect camera/US-100 brackets. | Sensor angle does not shift under normal handling. |
+| Track clearance | Roll vehicle through a practice corner and over cable routing. | Chassis, wires, and mounts do not scrape or catch. |
+
+## ⚠️ Mechanical Risks and Mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Servo linkage backlash | Use short linkage parts, tight fasteners, and repeat `servo_tune.py` after assembly. |
+| Gear misalignment | Motor mount fixes shaft center distance and assembly is checked before autonomous runs. |
+| Camera vibration | Tall camera mount is bolted directly to the chassis and checked before obstacle testing. |
+| Printed part warping | Competition parts should be printed with controlled orientation and higher infill where loads are concentrated. |
+| Tire slip | O-ring tires provide a simple repeatable contact patch and can be replaced quickly if worn. |
+| Battery/electronics weight shift | Chassis has dedicated electronics zones so mass stays low and centered. |
+
+## 🔁 Repeatability Notes
+
+- Keep the same print orientation for left/right steering parts so geometry stays symmetric.
+- Ream or lightly clean bearing holes only when needed; oversized seats reduce repeatability.
+- Mark final servo horn position after tuning so the steering center can be rebuilt after maintenance.
+- Use the same wheel/tire batch during timed tests to avoid traction differences.
+- Route sensor cables away from moving steering links and gears before every run.
 
 ---
 

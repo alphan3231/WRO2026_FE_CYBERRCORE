@@ -36,6 +36,45 @@ The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico
 | Color sensing | Pico 2 W H -> TCS34725 | Reserved as an extra color sensing module. |
 | Power regulation | LiPo -> switch -> buck converters -> modules | All grounds must be common. Regulator outputs must be measured before testing. |
 
+## Power Budget and Rail Plan
+
+The robot separates high-current actuator loads from logic/sensor loads so motor noise does not reset the controller or corrupt sensor data.
+
+| Rail | Loads | Reason |
+| --- | --- | --- |
+| Battery input | Main switch, buck converters | Keeps the battery path short and easy to disconnect during testing. |
+| Motor/servo rail | TB6612FNG motor supply and steering servo supply | Handles current spikes from acceleration, braking, and fast steering changes. |
+| Logic rail | Pico 2 W H, ESP32-CAM, MPU9250, TCS34725, US-100 logic | Keeps controller and sensor voltage stable during motor load changes. |
+| Common ground | All modules | Required for PWM, UART, I2C, trigger/echo, and camera signals to share the same reference. |
+
+Expected current risks:
+
+- The ESP32-CAM can draw high current during Wi-Fi/camera startup, so it should not share a weak rail with the Pico without enough regulator margin.
+- The steering servo can create voltage dips when held against mechanical load.
+- The drive motor can inject noise into the supply through the TB6612FNG if wiring is long or loose.
+
+The chosen architecture uses buck converters because the battery voltage is higher than the safe voltage for logic boards and because a regulated rail gives repeatable sensor behavior across the battery discharge curve.
+
+## Sensor Placement Reasoning
+
+| Sensor | Placement reason | Trade-off |
+| --- | --- | --- |
+| ESP32-CAM | Mounted high enough to see colored obstacles before the vehicle reaches them. | Higher mounting improves view, but increases vibration sensitivity. |
+| US-100 | Faces forward to detect walls/corners early enough for a 90-degree turn. | Very close readings can be noisy, so software filters unrealistic distances. |
+| MPU9250 | Placed near the chassis center to reduce rotational measurement error from vibration. | Needs startup calibration while the robot is still. |
+| TCS34725 | Kept as a reference/backup color sensor for future color validation. | Not part of the current primary obstacle algorithm. |
+
+## Calibration and Fault Management
+
+| Check | Method | Failure response |
+| --- | --- | --- |
+| Voltage rails | Measure buck converter outputs with a multimeter before connecting boards. | Do not connect electronics until output voltage is corrected. |
+| I2C sensors | Confirm MPU9250/TCS34725 addresses are detected. | Stop the run and inspect SDA/SCL, power, and ground wiring. |
+| UART camera | Verify `RED`, `GREEN`, and `NONE` messages before autonomous runs. | Use `src/camera_uart_blink.py` for isolated UART testing. |
+| Ultrasonic distance | Compare US-100 readings against known distances. | Reject readings below the configured minimum and inspect trigger/echo wiring. |
+| Motor polarity | Test with wheels lifted from the ground. | Swap motor leads or invert direction logic before track testing. |
+| Servo direction | Run `src/servo_tune.py`. | Adjust servo reverse/settings before autonomous code is used. |
+
 ## Safety Checklist
 
 - Check every buck converter output with a multimeter before connecting electronics.

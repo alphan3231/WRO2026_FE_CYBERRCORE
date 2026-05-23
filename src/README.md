@@ -107,21 +107,7 @@ This compact format is easy to parse on a second microcontroller and avoids send
 
 ### State Machine
 
-```text
-STRAIGHT
-   |
-   | distance < TURN_DISTANCE_CM
-   v
-TURN
-   |
-   | turned angle >= TURN_ANGLE - TURN_TOLERANCE
-   v
-STRAIGHT or FINAL_STRAIGHT_BEFORE_STOP
-   |
-   | final timer complete
-   v
-STOPPED
-```
+![Open Round State Machine](images/schema1.png)
 
 ## Obstacle Round Navigation
 
@@ -144,39 +130,7 @@ The target camera positions are:
 
 ### Obstacle State Machine
 
-```text
-FOLLOW
-   |
-   | RED or GREEN detected
-   v
-FOLLOW_COLOR
-   |
-   | color lost or timeout
-   v
-LOST_COLOR
-   |
-   | obstacle should be passed
-   v
-PASS_COLOR
-   |
-   | pass timer complete
-   v
-RECOVER_HEADING
-   |
-   | heading recovered or timeout
-   v
-FOLLOW
-
-FOLLOW
-   |
-   | distance < TURN_DISTANCE_CM
-   v
-TURN
-   |
-   | 90-degree turn complete
-   v
-FOLLOW
-```
+![Obstacle Round State Machine](images/schema2.jpg)
 
 ### Lap and Corner Counting
 

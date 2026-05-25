@@ -21,7 +21,7 @@ The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico
 | MPU9250 | <img src="mpu9250.jpg" alt="MPU9250 IMU" width="140"> | 1 | IMU / gyro sensor | Provides yaw-rate data for heading correction, 90-degree turns, and recovery after obstacle passing. |
 | TCS34725 | <img src="tcs34725.jpg" alt="TCS34725 color sensor" width="140"> | 1 | Color sensor | Reference/backup color sensing module for future color-based improvements. |
 | LM2596 / RT3505 buck converter | <img src="rt3505.jpg" alt="Buck converter module" width="140"> | 2 | Voltage regulator | Steps battery voltage down for electronics and actuator rails. Output voltage must be checked before connecting modules. |
-| 6S 450 mAh LiPo battery | <img src="6s450mah40lipo.jpg" alt="6S 450 mAh LiPo battery" width="140"> | 1 | Battery | Main robot power source. Feeds the regulator stage through the main switch. |
+| 2S 450 mAh LiPo battery | <img src="2s450mah40lipo.jpg" alt="2S 450 mAh LiPo battery" width="140"> | 1 | Battery | Main robot power source. Feeds the regulator stage through the main switch. |
 | On/off switch | <img src="switchonoff.jpg" alt="On/off switch" width="140"> | 1 | Power switch | Enables safe manual power control for the robot. |
 
 ## Signal and Power Summary

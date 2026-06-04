@@ -51,3 +51,7 @@ The mechanical system uses a low flat chassis, Ackermann-style steering linkage,
 ## Validation Status
 
 The repository contains the engineering evidence needed to reproduce the robot, but physical performance still depends on track conditions, battery voltage, lighting, and final tuning. Before competition runs, the team should record final test videos for both open round and obstacle round and link them here.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

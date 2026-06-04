@@ -7,15 +7,15 @@ This folder contains the complete 3D CAD model previews for Team CYBERRCORE's WR
 Our design philosophy is built around **structural rigidity with strategic weight reduction** — a flat-plate chassis architecture that keeps the center of gravity low, simplifies assembly, and provides dedicated mounting zones for every electronic and mechanical subsystem. The X-pattern lightening cutouts in the main body remove material where it is not structurally needed, reducing mass without compromising stiffness.
 
 <p align="center">
-  <img src="Full_Montaj_Full açı.png" alt="Full Assembly Isometric View" height="350">
-  <img src="Full_Montaj_Yukardan.png" alt="Full Assembly Top View" height="350">
+  <img src="Full_Assembly_Isometric.png" alt="Full Assembly Isometric View" height="350">
+  <img src="Full_Assembly_Top.png" alt="Full Assembly Top View" height="350">
 </p>
 <p align="center">
   <em>Left: Full assembly isometric view showing overall vehicle form factor &nbsp;•&nbsp; Right: Top-down view revealing chassis layout, electronics bay, steering geometry, and drivetrain routing</em>
 </p>
 
 <p align="center">
-  <img src="Full_montaj_FUll_açı2.png" alt="Full Assembly Second Angle" height="350">
+  <img src="Full_Assembly_Isometric2.png" alt="Full Assembly Second Angle" height="350">
 </p>
 <p align="center">
   <em>Secondary isometric angle highlighting camera mount, wheel profile, and chassis depth</em>
@@ -23,10 +23,10 @@ Our design philosophy is built around **structural rigidity with strategic weigh
 
 ## ⚙️ Core Mechanical Systems
 
-### 🏗️ Main Chassis — Ana Gövde
+### 🏗️ Main Chassis
 
 <p align="center">
-  <img src="Ana_Govde.png" alt="Main Chassis" height="350">
+  <img src="Main_Chassis.png" alt="Main Chassis" height="350">
 </p>
 <p align="center">
   <em>Primary structural plate featuring X-pattern lightening pockets, integrated standoff posts, and dedicated mounting zones for motor, servo, electronics, and sensor assemblies</em>
@@ -71,7 +71,7 @@ The front steering system uses a 4-component linkage to achieve Ackermann-compli
 ### 🔧 Rear Drivetrain — Differential & Gear System
 
 <p align="center">
-  <img src="montajlı_Differansiyal.png" alt="Assembled Differential" height="380">
+  <img src="Assembled_Differential.png" alt="Assembled Differential" height="380">
 </p>
 <p align="center">
   <em>Assembled differential showing rear shaft, gear stack, and bearing assembly — enables independent rear wheel rotation during turns to prevent inside-wheel scrub</em>
@@ -82,7 +82,7 @@ The front steering system uses a 4-component linkage to achieve Ackermann-compli
     <tr>
       <td align="center"><img src="08M-31T_Motor.png" alt="Motor Pinion Gear" height="200"><br><em>0.8M-31T Motor Gear</em></td>
       <td align="center"><img src="0.8M-31T.png" alt="Driven Gear" height="200"><br><em>0.8M-31T Driven Gear</em></td>
-      <td align="center"><img src="ArkaŞaft.png" alt="Rear Shaft" height="200"><br><em>Rear Shaft Assembly</em></td>
+      <td align="center"><img src="Rear_Shaft.png" alt="Rear Shaft" height="200"><br><em>Rear Shaft Assembly</em></td>
     </tr>
   </table>
 </p>
@@ -93,7 +93,7 @@ The front steering system uses a 4-component linkage to achieve Ackermann-compli
 - **Design Intent**: The 1:1 ratio preserves full motor RPM, prioritizing speed over additional torque reduction; torque is inherently sufficient at this vehicle mass
 - **Motor Gear** (`08M-31T_Motor`): Small central bore sized to press-fit directly onto motor output shaft
 - **Driven Gear** (`0.8M-31T`): Large central hub bore for rear shaft engagement, transfers torque into the differential
-- **Rear Shaft** (`ArkaŞaft`): Through-axle with integrated differential gear stack and bearing seats at both ends; provides the structural spine of the rear drivetrain
+- **Rear Shaft** (`Rear_Shaft`): Through-axle with integrated differential gear stack and bearing seats at both ends; provides the structural spine of the rear drivetrain
 
 **Torque and Speed Justification:**
 
@@ -200,8 +200,8 @@ The drivetrain was selected for controllability rather than maximum acceleration
     <tr>
       <td align="center"><img src="3x10x4_Bearing.png" alt="3x10x4 Bearing" height="180"><br><em>3×10×4 Bearing</em></td>
       <td align="center"><img src="Spacer.png" alt="Spacer" height="180"><br><em>Spacer (Thin)</em></td>
-      <td align="center"><img src="Spacer_Kalin.png" alt="Thick Spacer" height="180"><br><em>Spacer (Thick)</em></td>
-      <td align="center"><img src="M3_Pul.png" alt="M3 Washer" height="180"><br><em>M3 Washer</em></td>
+      <td align="center"><img src="Spacer_Thick.png" alt="Thick Spacer" height="180"><br><em>Spacer (Thick)</em></td>
+      <td align="center"><img src="M3_Washer.png" alt="M3 Washer" height="180"><br><em>M3 Washer</em></td>
     </tr>
   </table>
 </p>
@@ -209,9 +209,9 @@ The drivetrain was selected for controllability rather than maximum acceleration
 | Component | Specification | Purpose |
 |-----------|---------------|---------|
 | **3×10×4 Bearing** | ID: 3mm, OD: 10mm, Width: 4mm | Front wheel spindle rotation; rear shaft support; eliminates friction at high-load rotating joints |
-| **Spacer (İnce)** | Hollow cylinder, small length | Axial positioning of gears and wheels on shaft; prevents lateral play without adding excess mass |
-| **Spacer (Kalın)** | Hollow cylinder, greater length | Wider axial gaps between components; used where gear or bearing stack-up requires longer standoff |
-| **M3 Washer (Pul)** | M3 standard flat washer | Load distribution under bolt heads and nuts; prevents fastener pull-through in printed parts |
+| **Spacer (Thin)** | Hollow cylinder, small length | Axial positioning of gears and wheels on shaft; prevents lateral play without adding excess mass |
+| **Spacer (Thick)** | Hollow cylinder, greater length | Wider axial gaps between components; used where gear or bearing stack-up requires longer standoff |
+| **M3 Washer** | M3 standard flat washer | Load distribution under bolt heads and nuts; prevents fastener pull-through in printed parts |
 
 ---
 
@@ -223,7 +223,7 @@ All models were designed in **SolidWorks** and are documented here as PNG render
 
 | Component | Preview | Qty | Description |
 |-----------|---------|-----|-------------|
-| **Ana Gövde** (Main Chassis) | <img src="Ana_Govde.png" width="120"> | 1 | Primary structural plate with X lightening pockets and integrated mounting zones |
+| **Main Chassis** | <img src="Main_Chassis.png" width="120"> | 1 | Primary structural plate with X lightening pockets and integrated mounting zones |
 | **Motor Mount** | <img src="motorMount.png" width="120"> | 1 | U-bracket with snap clamp for DC motor, two M3 base holes |
 | **Front Wheel Mount** | <img src="Front_Wheel_Mount.png" width="120"> | 2 | Wheel upright with bearing bore and square steering pin slot (left/right) |
 | **Steer1 — Steering Knuckle** | <img src="Steer1.png" width="120"> | 2 | L-shaped knuckle connecting wheel to chassis pivot (left/right) |
@@ -235,14 +235,14 @@ All models were designed in **SolidWorks** and are documented here as PNG render
 | **Tire** | <img src="Tire.png" width="120"> | 4 | O-ring torus tire with 3 circumferential grip grooves |
 | **0.8M-31T Driven Gear** | <img src="0.8M-31T.png" width="120"> | 1 | 31-tooth 0.8M spur gear with large hub bore for rear shaft |
 | **0.8M-31T Motor Gear** | <img src="08M-31T_Motor.png" width="120"> | 1 | 31-tooth 0.8M spur gear with small bore for motor output shaft |
-| **Arka Şaft** (Rear Shaft) | <img src="ArkaŞaft.png" width="120"> | 1 | Rear through-axle with differential gear stack and bearing seats |
-| **Assembled Differential** | <img src="montajlı_Differansiyal.png" width="120"> | 1 | Complete differential sub-assembly reference view |
+| **Rear Shaft** | <img src="Rear_Shaft.png" width="120"> | 1 | Rear through-axle with differential gear stack and bearing seats |
+| **Assembled Differential** | <img src="Assembled_Differential.png" width="120"> | 1 | Complete differential sub-assembly reference view |
 | **Camera Mount** | <img src="CamMount.png" width="120"> | 1 | Tall vertical bracket with dual adjustment slots for camera height |
 | **US-100 Mount** | <img src="US100_Mount.png" width="120"> | 1 | Box bracket with square sensor cutout and snap-clip retention |
-| **Spacer (İnce)** | <img src="Spacer.png" width="120"> | TBD | Short hollow spacer for axial component positioning |
-| **Spacer (Kalın)** | <img src="Spacer_Kalin.png" width="120"> | TBD | Tall hollow spacer for wider axial gaps |
+| **Spacer (Thin)** | <img src="Spacer.png" width="120"> | TBD | Short hollow spacer for axial component positioning |
+| **Spacer (Thick)** | <img src="Spacer_Thick.png" width="120"> | TBD | Tall hollow spacer for wider axial gaps |
 | **3×10×4 Bearing** | <img src="3x10x4_Bearing.png" width="120"> | 4+ | Radial ball bearing for front wheel spindles and shaft support |
-| **M3 Washer** | <img src="M3_Pul.png" width="120"> | TBD | Standard flat washer for M3 fasteners |
+| **M3 Washer** | <img src="M3_Washer.png" width="120"> | TBD | Standard flat washer for M3 fasteners |
 
 ---
 

@@ -2,6 +2,16 @@
 
 This repository contains Team CYBERRCORE's autonomous vehicle documentation for WRO 2026 Future Engineers. It is organized so judges can reproduce the robot's mechanical design, electronics architecture, and software behavior from the files in this repository.
 
+## Robot Documentation Preview
+
+| Mechanical CAD | Electronics Wiring |
+| --- | --- |
+| ![Full robot CAD assembly](models/Full_Montaj_Full%20açı.png) | ![Complete electronics wiring scheme](schemes/electronicsheme.jpeg) |
+
+| Bench Build | Track Testing |
+| --- | --- |
+| ![Robot bench wiring and development setup](src/images/robot-bench-wiring.jpeg) | ![Open-round track testing](src/images/open-round-track-test.jpeg) |
+
 ## Repository Map
 
 | Folder | Contents | Scoring focus |
@@ -41,3 +51,7 @@ The mechanical system uses a low flat chassis, Ackermann-style steering linkage,
 ## Validation Status
 
 The repository contains the engineering evidence needed to reproduce the robot, but physical performance still depends on track conditions, battery voltage, lighting, and final tuning. Before competition runs, the team should record final test videos for both open round and obstacle round and link them here.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

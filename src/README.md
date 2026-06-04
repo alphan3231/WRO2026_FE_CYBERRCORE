@@ -134,7 +134,7 @@ The target camera positions are:
 
 ### Lap and Corner Counting
 
-The obstacle-round script tracks `corner_count` and `lap_count`. After every four corners, one lap is counted. The robot stops when `REQUIRED_LAPS = 4` is reached.
+The obstacle-round script tracks `corner_count` and `lap_count`. After every four corners, one lap is counted. The robot stops when `REQUIRED_LAPS = 3` is reached.
 
 ### Logging
 

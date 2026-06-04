@@ -6,7 +6,7 @@ This repository contains Team CYBERRCORE's autonomous vehicle documentation for 
 
 | Mechanical CAD | Electronics Wiring |
 | --- | --- |
-| ![Full robot CAD assembly](models/Full_Montaj_Full%20açı.png) | ![Complete electronics wiring scheme](schemes/electronicsheme.jpeg) |
+| ![Full robot CAD assembly](models/Full_Assembly_Isometric.png) | ![Complete electronics wiring scheme](schemes/electronicsheme.jpeg) |
 
 | Bench Build | Track Testing |
 | --- | --- |

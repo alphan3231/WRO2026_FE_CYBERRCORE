@@ -24,6 +24,91 @@ The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico
 | 2S 450 mAh LiPo battery | <img src="2s450mah40lipo.jpg" alt="2S 450 mAh LiPo battery" width="140"> | 1 | Battery | Main robot power source. Feeds the regulator stage through the main switch. |
 | On/off switch | <img src="switchonoff.jpg" alt="On/off switch" width="140"> | 1 | Power switch | Enables safe manual power control for the robot. |
 
+## Cable and Connection Specifications
+
+All voltage values are nominal. Current values are worst-case peaks unless otherwise noted.
+
+### 1. Main Power Source and Regulator Inputs
+
+The 2S LiPo battery output (7.4 V nominal, 8.4 V fully charged) feeds three destinations through the main on/off switch.
+
+| From | To | Voltage | Peak Current | Notes |
+| --- | --- | ---: | ---: | --- |
+| 2S LiPo (+) | On/off switch (input) | 7.4–8.4 V | 2.5 A | System peak: motor under load + servo moving + camera streaming |
+| On/off switch (output) | Buck converter 1 (IN+) | 7.4–8.4 V | 0.6 A | Logic rail input |
+| On/off switch (output) | Buck converter 2 (IN+) | 7.4–8.4 V | 1.0 A | Servo rail input |
+| On/off switch (output) | TB6612FNG VM | 7.4–8.4 V | 1.0 A | Direct battery voltage to motor power pin — motor must tolerate 2S voltage |
+| 2S LiPo (−) | Common GND bus | 0 V | — | Shared ground for all modules |
+
+The TB6612FNG VM pin receives direct battery voltage. The DC motor therefore runs at 7.4–8.4 V. Motor current varies between 300 mA and 1 A depending on PWM duty cycle and mechanical load.
+
+### 2. Buck Converter Outputs
+
+Both buck converters step the battery voltage down to 5 V efficiently.
+
+#### Buck Converter 1 — System Rail (5 V output)
+
+| From | To | Voltage | Current | Notes |
+| --- | --- | ---: | ---: | --- |
+| Buck 1 (OUT+) | Pico 2 W H VBUS | 5.0 V | 50–100 mA | Pico draws more during heavy computation |
+| Buck 1 (OUT+) | ESP32-CAM 5V | 5.0 V | 100–400 mA | ~100 mA idle; up to 400 mA when Wi-Fi and flash are active |
+| Buck 1 (OUT+) | TB6612FNG VCC | 5.0 V | 1–5 mA | Logic supply only; motor power comes directly from battery |
+| Buck 1 (OUT−) | Common GND bus | 0 V | — | |
+
+Total Buck 1 output load: approximately **400–500 mA**.
+
+#### Buck Converter 2 — Servo Rail (5 V or 6 V output)
+
+| From | To | Voltage | Current | Notes |
+| --- | --- | ---: | ---: | --- |
+| Buck 2 (OUT+) | HD-1440A servo power (red wire) | 5.0 V (or 6.0 V) | 10–1000 mA | ~10 mA idle; up to 1 A instantaneous peak under mechanical load or sudden movement |
+| Buck 2 (OUT−) | Common GND bus | 0 V | — | |
+
+Set Buck 2 to **5 V** as default. Switching to **6 V** provides higher torque and speed if the servo and wiring support it.
+
+### 3. Sensors Powered from Pico 3.3 V
+
+The Pico 2 W H converts its 5 V VBUS input to a clean 3.3 V rail through its onboard regulator and feeds all sensors.
+
+| From | To | Voltage | Current | Notes |
+| --- | --- | ---: | ---: | --- |
+| Pico 3V3 (OUT) | TCS34725 VCC | 3.3 V | ~5 mA | Includes onboard LED current |
+| Pico 3V3 (OUT) | MPU6050 VCC | 3.3 V | ~4 mA | Gyro and accelerometer combined |
+| Pico 3V3 (OUT) | US-100 VCC | 3.3 V | ~20 mA | Peak during active measurement pulse |
+| Pico GND | All sensor GNDs | 0 V | — | Common reference for all I2C and UART signals |
+
+Total Pico 3.3 V rail load: approximately **30–40 mA** (well within the 300 mA regulator limit).
+
+### 4. Signal and Data Lines
+
+| From | To | Signal Voltage | Notes |
+| --- | --- | ---: | --- |
+| Pico GPIO 14 (PWM) | HD-1440A servo signal (yellow wire) | 3.3 V | 50 Hz PWM, 1–2 ms pulse width |
+| Pico GPIO 16 (PWM) | TB6612FNG PWMA | 3.3 V | Motor speed control |
+| Pico GPIO 17 | TB6612FNG AIN2 | 3.3 V | Motor direction |
+| Pico GPIO 18 | TB6612FNG AIN1 | 3.3 V | Motor direction |
+| Pico GPIO 19 | TB6612FNG STBY | 3.3 V | Must be HIGH to enable motor output |
+| Pico GPIO 4 (SDA) | MPU6050 SDA / TCS34725 SDA | 3.3 V | Shared I2C data bus; 4.7 kΩ pull-up to 3.3 V recommended |
+| Pico GPIO 5 (SCL) | MPU6050 SCL / TCS34725 SCL | 3.3 V | Shared I2C clock bus; 4.7 kΩ pull-up to 3.3 V recommended |
+| Pico GPIO 10 (TRIG) | US-100 TRIG | 3.3 V | 10 µs trigger pulse |
+| Pico GPIO 11 (ECHO) | US-100 ECHO | 3.3 V | US-100 echo output is 3.3 V compatible |
+| ESP32-CAM TX | 1 kΩ + 2 kΩ divider → Pico GPIO 1 (UART RX) | 5 V → 3.3 V | ESP32-CAM TX is 5 V logic. The resistor divider steps it to 3.3 V for the Pico RX pin. Line current ~1.6 mA. |
+| Pico GPIO 0 (UART TX) | ESP32-CAM RX | 3.3 V | Pico TX at 3.3 V is within ESP32-CAM input range; no level shifting needed |
+
+### Current Budget Summary
+
+| Rail | Consumers | Typical | Peak |
+| --- | --- | ---: | ---: |
+| Battery direct — TB6612FNG VM | DC motor | 300 mA | 1.0 A |
+| Buck 1 — 5 V logic | Pico (100 mA) + ESP32-CAM (400 mA) + TB6612FNG VCC (5 mA) | 250 mA | 505 mA |
+| Buck 2 — servo rail | HD-1440A servo | 10 mA | 1.0 A |
+| Pico 3.3 V out | MPU6050 (4 mA) + TCS34725 (5 mA) + US-100 (20 mA) | 29 mA | 40 mA |
+| **Battery total** | **All rails** | **~560 mA** | **~2.5 A** |
+
+The 2S LiPo battery voltage (7.4–8.4 V) is passed directly to the TB6612FNG motor driver to maximize motor efficiency. Logic and servo voltages are regulated down to 5 V by LM2596 buck converters for stable, repeatable behavior across the battery discharge curve.
+
+Before first power-on, measure Buck 1 output and set it to **5.0 V**, then measure Buck 2 output and set it to **5.0 V** (or **6.0 V** for the servo). Do not connect any board until both outputs are confirmed.
+
 ## Signal and Power Summary
 
 | Connection group | Modules | Notes |

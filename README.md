@@ -14,11 +14,16 @@ This repository contains Team CYBERRCORE's autonomous vehicle documentation for 
 
 ## Repository Map
 
-| Folder | Contents | Scoring focus |
+| Folder / File | Contents | Scoring focus |
 | --- | --- | --- |
-| [`src/`](src/) | ESP32-CAM firmware, MicroPython driving code, open-round logic, obstacle-round logic, tuning utilities, software README | Software architecture, obstacle strategy, repeatability, test workflow |
-| [`schemes/`](schemes/) | Wiring scheme, electronics BOM, component photos, power/signal notes | Power and sensor architecture, wiring repeatability, risk management |
-| [`models/`](models/) | CAD render previews, mechanical README, drivetrain, steering, chassis, mounts, wheels, assembly views | Mobility and mechanical design, torque/speed reasoning, manufacturability |
+| [`src/`](src/) | ESP32-CAM firmware (`camera.cpp`), MicroPython scripts (`openround.py`, `obstacleround.py`, `servo_tune.py`, `camera_uart_blink.py`), state machine diagrams, software README | Software architecture, obstacle strategy, PID control, repeatability, test workflow |
+| [`schemes/`](schemes/) | Wiring scheme (`electronicsheme.jpeg`), electronics BOM, component photos, cable & voltage/current specifications per connection, power budget | Power and sensor architecture, wiring repeatability, risk management |
+| [`models/`](models/) | CAD render previews (PNG), mechanical README, chassis, steering linkage, differential drivetrain, mounts, wheels, assembly views | Mobility and mechanical design, torque/speed reasoning, manufacturability |
+| [`models/STL/`](models/STL/) | Print-ready STL files for every custom part (chassis, gears, mounts, wheels, tires, steering arms, spacers) | Reproducibility — judges can print directly from these files |
+| [`v-photos/`](v-photos/) | Six orthographic robot photos: front, rear, top, bottom, left, right | Physical build evidence, sensor placement, wiring layout |
+| [`t-photos/`](t-photos/) | Official and fun team photos | Team identification |
+| [`video/`](video/) | YouTube links for open-round and obstacle-round competition runs | Performance demonstration |
+| [`CYBERRCORE_Technical_Documentation.docx`](CYBERRCORE_Technical_Documentation.docx) | Full technical report: mechanical design, electronics, wiring specs, software architecture, state machines, validation tables | Complete engineering documentation in a single printable document |
 
 ## Engineering Rubric Coverage
 

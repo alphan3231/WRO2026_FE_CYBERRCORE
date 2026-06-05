@@ -258,6 +258,46 @@ All components were modeled in **SolidWorks** with full parametric feature trees
 - **Bearing Seats**: Printed at 0.08–0.1mm layer height for dimensional accuracy required for press-fit bearing installation
 - **Orientation**: Parts oriented to place layer lines perpendicular to primary stress direction, maximizing inter-layer tensile strength where needed
 
+### 🧪 Material Selection per Component
+
+#### Material Overview
+
+| Material | Strengths | Weaknesses | Used for |
+| --- | --- | --- | --- |
+| **PLA** | High dimensional accuracy, stiff, easy to print, gear-friendly surface | Brittle under impact, low heat resistance (~60 °C), not ideal for repeated flex loads | Gears, wheels, low-stress mounts |
+| **PETG** | Impact resistant, tough, good layer adhesion, heat resistant (~80 °C), slight flex prevents crack propagation | Slightly lower stiffness than PLA, strings more during printing, bearing seats need careful calibration | Chassis, steering linkage, motor mount, axle |
+| **TPU (95A)** | Flexible, elastic, excellent grip and traction, absorbs vibration | Difficult to print fast, cannot be used for rigid structural parts | Tires only |
+
+#### Per-Component Material Decisions
+
+| Component | Material | Infill | Layer Height | Orientation | Reason |
+| --- | --- | --- | --- | --- | --- |
+| **Main Chassis** | PETG | 50% Gyroid | 0.15 mm | Flat (XY) | Main structural load path; PETG handles corner impacts and motor vibration without brittle fracture |
+| **Motor Mount** | PETG | 60% Rectilinear | 0.15 mm | Upright | Holds motor under continuous torque reaction and vibration; PETG's toughness prevents snap at bolt holes |
+| **Front Wheel Mount (×2)** | PETG | 55% Gyroid | 0.10 mm | Upright | Bearing press-fit seat demands tight dimensional tolerance; PETG's toughness handles steering side loads |
+| **Steer1 — Knuckle (×2)** | PETG | 55% Rectilinear | 0.15 mm | Flat | Repeated bending stress from steering inputs; PETG prevents crack propagation at the L-bend |
+| **Steer2 — Tie Rod** | PETG | 50% Rectilinear | 0.15 mm | Horizontal | Under axial tension and compression every steering cycle; PETG is tougher than PLA for slender rod geometry |
+| **Steer3 — Left Arm** | PETG | 55% Rectilinear | 0.15 mm | Flat | Asymmetric arm loaded sideways; PETG tolerates the offset bending moment better than PLA |
+| **Steer4 — Right Arm** | PETG | 55% Rectilinear | 0.15 mm | Flat | Same reasoning as Steer3 |
+| **0.8M-31T Motor Gear** | PLA | 100% Rectilinear | 0.08 mm | Flat (teeth upright) | Gears need stiff, hard tooth surfaces; PLA provides better mesh accuracy and surface hardness than PETG at this scale |
+| **0.8M-31T Driven Gear** | PLA | 100% Rectilinear | 0.08 mm | Flat (teeth upright) | Same as motor gear; 100% infill prevents tooth deformation under repeated meshing load |
+| **Rear Shaft** | PETG | 80% Rectilinear | 0.12 mm | Horizontal along shaft axis | Primary drivetrain axle under torsion and bending; PETG's toughness handles shock loads at gear mesh point |
+| **Front Wheel (×2)** | PLA | 40% Gyroid | 0.15 mm | Flat | Low mechanical stress — only rotates on bearing; PLA gives good dimensional accuracy for bearing seat |
+| **Rear Wheel (×2)** | PLA | 40% Gyroid | 0.15 mm | Flat | Fixed to axle, no bearing; low stress; PLA's stiffness is sufficient |
+| **Tire (×4)** | TPU 95A | 100% | 0.20 mm | Flat | Must stretch over rim and provide grip; only flexible material suitable for O-ring tire profile |
+| **Camera Mount** | PLA | 35% Gyroid | 0.15 mm | Upright | No significant mechanical load; PLA's rigidity keeps camera angle stable; lighter than PETG |
+| **US-100 Mount** | PLA | 35% Gyroid | 0.15 mm | Flat | Sensor holder only — no dynamic load; PLA is sufficient and prints cleanly for snap-clip detail |
+| **Spacers (Thin / Thick)** | PLA | 100% | 0.10 mm | Upright | Axial positioning parts; need accurate length; 100% infill prevents compression creep |
+| **M3 Washer** | PLA | 100% | 0.10 mm | Flat | Load distribution only; if standard metal washers are available, prefer those |
+
+#### Key Printing Notes
+
+- **Bearing seats** (Front Wheel Mount, Front Wheel, Rear Shaft): print at 0.08–0.10 mm layer height and calibrate flow rate before production runs. A 0.1 mm undersized bore is easier to open than reprinting an oversized one.
+- **Gears**: orient so tooth layer lines run perpendicular to the tooth face (teeth pointing up/flat print). Use a 0.4 mm nozzle minimum; 0.25 mm nozzle preferred for 0.8M tooth detail.
+- **TPU tires**: print slow (20–25 mm/s), disable retraction or use minimal retraction, and set 100% infill for consistent hardness around the circumference.
+- **PETG warp**: use a PEI or glass bed at 70–80 °C; avoid cooling fan for first 2–3 layers. Use brim for thin upright parts (Steer arms, Motor Mount).
+- **Symmetric parts** (Steer3/Steer4, Front Wheel Mounts): print left and right in the same batch on the same orientation to ensure geometric symmetry.
+
 ### 🔄 Design Iteration Process
 1. **Conceptual Layout** — Component placement defined in assembly sketch to lock wheelbase, track width, and sensor positions
 2. **Individual Part Modeling** — Each component modeled parametrically with design intent captured in feature names and equations

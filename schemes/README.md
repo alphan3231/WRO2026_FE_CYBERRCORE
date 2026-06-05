@@ -6,7 +6,7 @@ This directory documents the electronics used in the WRO 2026 Future Engineers r
 
 ![Complete electronics wiring scheme](electronicsheme.jpeg)
 
-The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico controls the motor driver, steering servo, US-100 ultrasonic sensor, MPU9250 IMU, and TCS34725 color sensor. The ESP32-CAM works as a separate vision module and sends camera detections to the Pico over UART.
+The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico controls the motor driver, steering servo, two US-100 ultrasonic sensors, MPU6050 IMU, and TCS34725 color sensor. The ESP32-CAM works as a separate vision module and sends camera detections to the Pico over UART.
 
 ## Complete Bill of Materials (BOM)
 
@@ -17,7 +17,7 @@ The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico
 | TB6612FNG | <img src="tb6612fng.jpg" alt="TB6612FNG motor driver" width="140"> | 1 | Motor driver | Drives the 6 V DC motor using PWM and direction signals from the Pico. |
 | 6 V micro DC motor | <img src="6vmicrodc.jpg" alt="6 V micro DC motor" width="140"> | 1 | Drive motor | Provides propulsion for the vehicle through the drivetrain. |
 | HD-1440A servo | <img src="hd1440aservo.jpg" alt="HD-1440A servo" width="140"> | 1 | Steering servo | Controls the steering mechanism and receives PWM commands from the Pico. |
-| US-100 ultrasonic sensor | <img src="us100.jpg" alt="US-100 ultrasonic sensor" width="140"> | 1 | Distance sensor | Measures front distance for wall detection, corner detection, and safety checks. |
+| US-100 ultrasonic sensor | <img src="us100.jpg" alt="US-100 ultrasonic sensor" width="140"> | 2 | Distance sensor | Measures distance for wall detection, corner detection, and safety checks. Sensor 1 (front): GPIO 10/11. Sensor 2 (side/rear): GPIO 12/13. |
 | MPU9250 | <img src="mpu9250.jpg" alt="MPU9250 IMU" width="140"> | 1 | IMU / gyro sensor | Provides yaw-rate data for heading correction, 90-degree turns, and recovery after obstacle passing. |
 | TCS34725 | <img src="tcs34725.jpg" alt="TCS34725 color sensor" width="140"> | 1 | Color sensor | Reference/backup color sensing module for future color-based improvements. |
 | LM2596 / RT3505 buck converter | <img src="rt3505.jpg" alt="Buck converter module" width="140"> | 2 | Voltage regulator | Steps battery voltage down for electronics and actuator rails. Output voltage must be checked before connecting modules. |
@@ -74,10 +74,11 @@ The Pico 2 W H converts its 5 V VBUS input to a clean 3.3 V rail through its onb
 | --- | --- | ---: | ---: | --- |
 | Pico 3V3 (OUT) | TCS34725 VCC | 3.3 V | ~5 mA | Includes onboard LED current |
 | Pico 3V3 (OUT) | MPU6050 VCC | 3.3 V | ~4 mA | Gyro and accelerometer combined |
-| Pico 3V3 (OUT) | US-100 VCC | 3.3 V | ~20 mA | Peak during active measurement pulse |
+| Pico 3V3 (OUT) | US-100 #1 VCC (GPIO 10/11) | 3.3 V | ~20 mA | Peak during active measurement pulse |
+| Pico 3V3 (OUT) | US-100 #2 VCC (GPIO 12/13) | 3.3 V | ~20 mA | Peak during active measurement pulse |
 | Pico GND | All sensor GNDs | 0 V | — | Common reference for all I2C and UART signals |
 
-Total Pico 3.3 V rail load: approximately **30–40 mA** (well within the 300 mA regulator limit).
+Total Pico 3.3 V rail load: approximately **50–55 mA** (well within the 300 mA regulator limit).
 
 ### 4. Signal and Data Lines
 
@@ -90,8 +91,10 @@ Total Pico 3.3 V rail load: approximately **30–40 mA** (well within the 300 mA
 | Pico GPIO 19 | TB6612FNG STBY | 3.3 V | Must be HIGH to enable motor output |
 | Pico GPIO 4 (SDA) | MPU6050 SDA / TCS34725 SDA | 3.3 V | Shared I2C data bus; 4.7 kΩ pull-up to 3.3 V recommended |
 | Pico GPIO 5 (SCL) | MPU6050 SCL / TCS34725 SCL | 3.3 V | Shared I2C clock bus; 4.7 kΩ pull-up to 3.3 V recommended |
-| Pico GPIO 10 (TRIG) | US-100 TRIG | 3.3 V | 10 µs trigger pulse |
-| Pico GPIO 11 (ECHO) | US-100 ECHO | 3.3 V | US-100 echo output is 3.3 V compatible |
+| Pico GPIO 10 (TRIG) | US-100 #1 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 1 |
+| Pico GPIO 11 (ECHO) | US-100 #1 ECHO | 3.3 V | Echo return 3.3 V compatible — Sensor 1 |
+| Pico GPIO 12 (TRIG) | US-100 #2 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 2 |
+| Pico GPIO 13 (ECHO) | US-100 #2 ECHO | 3.3 V | Echo return 3.3 V compatible — Sensor 2 |
 | ESP32-CAM TX | 1 kΩ + 2 kΩ divider → Pico GPIO 1 (UART RX) | 5 V → 3.3 V | ESP32-CAM TX is 5 V logic. The resistor divider steps it to 3.3 V for the Pico RX pin. Line current ~1.6 mA. |
 | Pico GPIO 0 (UART TX) | ESP32-CAM RX | 3.3 V | Pico TX at 3.3 V is within ESP32-CAM input range; no level shifting needed |
 
@@ -102,7 +105,7 @@ Total Pico 3.3 V rail load: approximately **30–40 mA** (well within the 300 mA
 | Battery direct — TB6612FNG VM | DC motor | 300 mA | 1.0 A |
 | Buck 1 — 5 V logic | Pico (100 mA) + ESP32-CAM (400 mA) + TB6612FNG VCC (5 mA) | 250 mA | 505 mA |
 | Buck 2 — servo rail | HD-1440A servo | 10 mA | 1.0 A |
-| Pico 3.3 V out | MPU6050 (4 mA) + TCS34725 (5 mA) + US-100 (20 mA) | 29 mA | 40 mA |
+| Pico 3.3 V out | MPU6050 (4 mA) + TCS34725 (5 mA) + US-100 ×2 (40 mA) | 49 mA | 55 mA |
 | **Battery total** | **All rails** | **~560 mA** | **~2.5 A** |
 
 The 2S LiPo battery voltage (7.4–8.4 V) is passed directly to the TB6612FNG motor driver to maximize motor efficiency. Logic and servo voltages are regulated down to 5 V by LM2596 buck converters for stable, repeatable behavior across the battery discharge curve.
@@ -115,7 +118,7 @@ Before first power-on, measure Buck 1 output and set it to **5.0 V**, then measu
 | --- | --- | --- |
 | Motor control | Pico 2 W H -> TB6612FNG -> DC motor | PWM controls speed, direction pins control motor direction. |
 | Steering | Pico 2 W H -> HD-1440A servo | Servo limits are tuned in `src/servo_tune.py`. |
-| Distance sensing | Pico 2 W H -> US-100 | Used by `src/openround.py` and `src/obstacleround.py` for wall/corner detection. |
+| Distance sensing | Pico 2 W H -> US-100 #1 (GPIO 10/11) + US-100 #2 (GPIO 12/13) | Two sensors used by `src/openround.py` and `src/obstacleround.py` for wall/corner detection from different directions. |
 | Gyro heading | Pico 2 W H -> MPU9250 | I2C gyro data is used for yaw estimation and turn completion. |
 | Camera UART | ESP32-CAM -> Pico 2 W H | The camera sends `RED`, `GREEN`, or `NONE` messages for obstacle logic. |
 | Color sensing | Pico 2 W H -> TCS34725 | Reserved as an extra color sensing module. |
@@ -129,7 +132,7 @@ The robot separates high-current actuator loads from logic/sensor loads so motor
 | --- | --- | --- |
 | Battery input | Main switch, buck converters | Keeps the battery path short and easy to disconnect during testing. |
 | Motor/servo rail | TB6612FNG motor supply and steering servo supply | Handles current spikes from acceleration, braking, and fast steering changes. |
-| Logic rail | Pico 2 W H, ESP32-CAM, MPU9250, TCS34725, US-100 logic | Keeps controller and sensor voltage stable during motor load changes. |
+| Logic rail | Pico 2 W H, ESP32-CAM, MPU6050, TCS34725, US-100 ×2 logic | Keeps controller and sensor voltage stable during motor load changes. |
 | Common ground | All modules | Required for PWM, UART, I2C, trigger/echo, and camera signals to share the same reference. |
 
 Expected current risks:
@@ -145,7 +148,8 @@ The chosen architecture uses buck converters because the battery voltage is high
 | Sensor | Placement reason | Trade-off |
 | --- | --- | --- |
 | ESP32-CAM | Mounted high enough to see colored obstacles before the vehicle reaches them. | Higher mounting improves view, but increases vibration sensitivity. |
-| US-100 | Faces forward to detect walls/corners early enough for a 90-degree turn. | Very close readings can be noisy, so software filters unrealistic distances. |
+| US-100 #1 (GPIO 10/11) | Faces forward to detect walls and corners early enough for a 90-degree turn. | Very close readings can be noisy, so software filters unrealistic distances. |
+| US-100 #2 (GPIO 12/13) | Mounted to cover a second direction (side or rear) for expanded spatial awareness. | Both sensors share the same filtering logic; trigger pulses are staggered to avoid crosstalk. |
 | MPU9250 | Placed near the chassis center to reduce rotational measurement error from vibration. | Needs startup calibration while the robot is still. |
 | TCS34725 | Kept as a reference/backup color sensor for future color validation. | Not part of the current primary obstacle algorithm. |
 
@@ -177,8 +181,8 @@ The chosen architecture uses buck converters because the battery voltage is high
 | --- | --- |
 | `src/camera.cpp` | ESP32-CAM |
 | `src/camera_uart_blink.py` | ESP32-CAM UART output and Pico onboard LED |
-| `src/openround.py` | Pico, servo, TB6612FNG, DC motor, US-100, MPU9250 |
-| `src/obstacleround.py` | Pico, ESP32-CAM, servo, TB6612FNG, DC motor, US-100, MPU9250 |
-| `src/servo_tune.py` | Pico, steering servo, MPU9250 |
+| `src/openround.py` | Pico, servo, TB6612FNG, DC motor, US-100 ×2 (GPIO 10/11 + 12/13), MPU6050 |
+| `src/obstacleround.py` | Pico, ESP32-CAM, servo, TB6612FNG, DC motor, US-100 ×2 (GPIO 10/11 + 12/13), MPU6050 |
+| `src/servo_tune.py` | Pico, steering servo, MPU6050 |
 
 This folder should be updated whenever the electronics layout, wiring, power system, or sensor placement changes.

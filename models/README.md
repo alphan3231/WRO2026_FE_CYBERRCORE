@@ -251,6 +251,19 @@ All models were designed in **SolidWorks** and are documented here as PNG render
 ### 🖥️ CAD Platform
 All components were modeled in **SolidWorks** with full parametric feature trees, enabling rapid design iteration and precise dimension control. Assembly files validate fit, clearance, and motion range before any part is printed.
 
+### 🖨️ Printer Platform
+
+All parts were printed on a **Bambu Lab A1 Mini** using **Bambu Studio** as the slicer. The A1 Mini's automatic flow calibration, multi-axis vibration compensation, and fast print speeds (up to 500 mm/s travel) made it possible to iterate quickly between design revisions during development. Dimensional accuracy is high out of the box, which is critical for bearing press-fit seats and gear mesh tolerances.
+
+| Setting | Value |
+| --- | --- |
+| Printer | Bambu Lab A1 Mini |
+| Slicer | Bambu Studio |
+| Nozzle diameter | 0.4 mm (standard); 0.25 mm for fine gear details if available |
+| Bed surface | Textured PEI plate |
+| Print speed | 150–250 mm/s for structural parts; 20–25 mm/s for TPU tires |
+| Flow calibration | Auto-calibration run before each material change |
+
 ### 🖨️ 3D Printing Strategy
 - **Target Material**: PLA for initial prototyping; ABS or PETG for competition parts requiring impact resistance and thermal stability
 - **Gear Infill**: 100% for all gear components to prevent tooth deformation under repeated meshing load

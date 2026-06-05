@@ -17,7 +17,7 @@ The wiring scheme is built around a Raspberry Pi Pico 2 W H controller. The Pico
 | TB6612FNG | <img src="tb6612fng.jpg" alt="TB6612FNG motor driver" width="140"> | 1 | Motor driver | Drives the 6 V DC motor using PWM and direction signals from the Pico. |
 | 6 V micro DC motor | <img src="6vmicrodc.jpg" alt="6 V micro DC motor" width="140"> | 1 | Drive motor | Provides propulsion for the vehicle through the drivetrain. |
 | HD-1440A servo | <img src="hd1440aservo.jpg" alt="HD-1440A servo" width="140"> | 1 | Steering servo | Controls the steering mechanism and receives PWM commands from the Pico. |
-| US-100 ultrasonic sensor | <img src="us100.jpg" alt="US-100 ultrasonic sensor" width="140"> | 2 | Distance sensor | Measures distance for wall detection, corner detection, and safety checks. Sensor 1 (front): GPIO 10/11. Sensor 2 (side/rear): GPIO 12/13. |
+| US-100 ultrasonic sensor | <img src="us100.jpg" alt="US-100 ultrasonic sensor" width="140"> | 3 | Distance sensor | Measures distance for wall detection, corner detection, and safety checks. Sensor 1: GPIO 10/11. Sensor 2: GPIO 12/13. Sensor 3: GPIO 2/3. |
 | MPU9250 | <img src="mpu9250.jpg" alt="MPU9250 IMU" width="140"> | 1 | IMU / gyro sensor | Provides yaw-rate data for heading correction, 90-degree turns, and recovery after obstacle passing. |
 | TCS34725 | <img src="tcs34725.jpg" alt="TCS34725 color sensor" width="140"> | 1 | Color sensor | Reference/backup color sensing module for future color-based improvements. |
 | LM2596 / RT3505 buck converter | <img src="rt3505.jpg" alt="Buck converter module" width="140"> | 2 | Voltage regulator | Steps battery voltage down for electronics and actuator rails. Output voltage must be checked before connecting modules. |
@@ -74,11 +74,17 @@ The Pico 2 W H converts its 5 V VBUS input to a clean 3.3 V rail through its onb
 | --- | --- | ---: | ---: | --- |
 | Pico 3V3 (OUT) | TCS34725 VCC | 3.3 V | ~5 mA | Includes onboard LED current |
 | Pico 3V3 (OUT) | MPU6050 VCC | 3.3 V | ~4 mA | Gyro and accelerometer combined |
-| Pico 3V3 (OUT) | US-100 #1 VCC (GPIO 10/11) | 3.3 V | ~20 mA | Peak during active measurement pulse |
-| Pico 3V3 (OUT) | US-100 #2 VCC (GPIO 12/13) | 3.3 V | ~20 mA | Peak during active measurement pulse |
 | Pico GND | All sensor GNDs | 0 V | — | Common reference for all I2C and UART signals |
 
-Total Pico 3.3 V rail load: approximately **50–55 mA** (well within the 300 mA regulator limit).
+Total Pico 3.3 V rail load: approximately **9–10 mA** (well within the 300 mA regulator limit).
+
+The three US-100 sensors are powered from **Buck 1 (5 V)**, not the Pico 3.3 V rail.
+
+| From | To | Voltage | Current | Notes |
+| --- | --- | ---: | ---: | --- |
+| Buck 1 (OUT+) | US-100 #1 VCC | 5.0 V | ~8 mA | Sensor 1 — GPIO 10/11 |
+| Buck 1 (OUT+) | US-100 #2 VCC | 5.0 V | ~8 mA | Sensor 2 — GPIO 12/13 |
+| Buck 1 (OUT+) | US-100 #3 VCC | 5.0 V | ~8 mA | Sensor 3 — GPIO 2/3 |
 
 ### 4. Signal and Data Lines
 
@@ -91,10 +97,12 @@ Total Pico 3.3 V rail load: approximately **50–55 mA** (well within the 300 mA
 | Pico GPIO 19 | TB6612FNG STBY | 3.3 V | Must be HIGH to enable motor output |
 | Pico GPIO 4 (SDA) | MPU6050 SDA / TCS34725 SDA | 3.3 V | Shared I2C data bus; 4.7 kΩ pull-up to 3.3 V recommended |
 | Pico GPIO 5 (SCL) | MPU6050 SCL / TCS34725 SCL | 3.3 V | Shared I2C clock bus; 4.7 kΩ pull-up to 3.3 V recommended |
-| Pico GPIO 10 (TRIG) | US-100 #1 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 1 |
-| Pico GPIO 11 (ECHO) | US-100 #1 ECHO | 3.3 V | Echo return 3.3 V compatible — Sensor 1 |
-| Pico GPIO 12 (TRIG) | US-100 #2 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 2 |
-| Pico GPIO 13 (ECHO) | US-100 #2 ECHO | 3.3 V | Echo return 3.3 V compatible — Sensor 2 |
+| Pico GPIO 10 (TRIG) | US-100 #1 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 1; US-100 TRIG accepts 3.3 V |
+| US-100 #1 ECHO | 1 kΩ + 2 kΩ divider → Pico GPIO 11 | 5 V → 3.3 V | ECHO output is 5 V; resistor divider steps to 3.3 V for Pico. ~1.6 mA line current |
+| Pico GPIO 12 (TRIG) | US-100 #2 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 2; US-100 TRIG accepts 3.3 V |
+| US-100 #2 ECHO | 1 kΩ + 2 kΩ divider → Pico GPIO 13 | 5 V → 3.3 V | ECHO output is 5 V; resistor divider steps to 3.3 V for Pico. ~1.6 mA line current |
+| Pico GPIO 2 (TRIG) | US-100 #3 TRIG | 3.3 V | 10 µs trigger pulse — Sensor 3; US-100 TRIG accepts 3.3 V |
+| US-100 #3 ECHO | 1 kΩ + 2 kΩ divider → Pico GPIO 3 | 5 V → 3.3 V | ECHO output is 5 V; resistor divider steps to 3.3 V for Pico. ~1.6 mA line current |
 | ESP32-CAM TX | 1 kΩ + 2 kΩ divider → Pico GPIO 1 (UART RX) | 5 V → 3.3 V | ESP32-CAM TX is 5 V logic. The resistor divider steps it to 3.3 V for the Pico RX pin. Line current ~1.6 mA. |
 | Pico GPIO 0 (UART TX) | ESP32-CAM RX | 3.3 V | Pico TX at 3.3 V is within ESP32-CAM input range; no level shifting needed |
 
@@ -103,9 +111,9 @@ Total Pico 3.3 V rail load: approximately **50–55 mA** (well within the 300 mA
 | Rail | Consumers | Typical | Peak |
 | --- | --- | ---: | ---: |
 | Battery direct — TB6612FNG VM | DC motor | 300 mA | 1.0 A |
-| Buck 1 — 5 V logic | Pico (100 mA) + ESP32-CAM (400 mA) + TB6612FNG VCC (5 mA) | 250 mA | 505 mA |
+| Buck 1 — 5 V logic | Pico (100 mA) + ESP32-CAM (400 mA) + TB6612FNG VCC (5 mA) + US-100 ×3 (24 mA) | 274 mA | 529 mA |
 | Buck 2 — servo rail | HD-1440A servo | 10 mA | 1.0 A |
-| Pico 3.3 V out | MPU6050 (4 mA) + TCS34725 (5 mA) + US-100 ×2 (40 mA) | 49 mA | 55 mA |
+| Pico 3.3 V out | MPU6050 (4 mA) + TCS34725 (5 mA) | 9 mA | 10 mA |
 | **Battery total** | **All rails** | **~560 mA** | **~2.5 A** |
 
 The 2S LiPo battery voltage (7.4–8.4 V) is passed directly to the TB6612FNG motor driver to maximize motor efficiency. Logic and servo voltages are regulated down to 5 V by LM2596 buck converters for stable, repeatable behavior across the battery discharge curve.

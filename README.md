@@ -1,6 +1,6 @@
 # WRO 2026 Future Engineers - Team CYBERRCORE
 
-<img src="logo.jpg" alt="Team CYBERRCORE Logo" width="200" style="border-radius: 50%;">
+<img src="logo.jpg" alt="Team CYBERRCORE Logo" style="border-radius: 50%;">
 
 This repository contains Team **CYBERRCORE**'s autonomous vehicle documentation for **WRO 2026 Future Engineers**. The goal of this repository is not only to show the final robot, but also to make the complete engineering process reproducible: mechanical CAD, electronics wiring, software architecture, testing workflow, and engineering trade-offs are all documented in separate folders.
 

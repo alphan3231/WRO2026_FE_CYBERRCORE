@@ -1,5 +1,7 @@
 # WRO 2026 Future Engineers - Team CYBERRCORE
 
+![Team CYBERRCORE Logo](logo.jpg)
+
 This repository contains Team **CYBERRCORE**'s autonomous vehicle documentation for **WRO 2026 Future Engineers**. The goal of this repository is not only to show the final robot, but also to make the complete engineering process reproducible: mechanical CAD, electronics wiring, software architecture, testing workflow, and engineering trade-offs are all documented in separate folders.
 
 The robot is designed for both the **Open Round** and **Obstacle Round**. It uses a Raspberry Pi Pico 2 W H as the main controller, an ESP32-CAM as a dedicated vision module, ultrasonic wall sensing, gyro-based heading estimation, Ackermann-style steering, and a custom 3D-printed drivetrain.
